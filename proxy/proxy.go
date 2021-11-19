@@ -3,19 +3,20 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
 	"net/http"
 
 	"github.com/golang/glog"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 
-	gw "example/grpc/pkg/api/v1"
+	gw "example/grpc/calculatorpb"
 )
 
 var (
 	// command-line options:
 	// gRPC server endpoint
-	grpcServerEndpoint = flag.String("grpc-server-endpoint", "localhost:50051", "gRPC server endpoint")
+	grpcServerEndpoint = flag.String("grpc-server-endpoint", "localhost:50069", "gRPC server endpoint")
 )
 
 func run() error {
@@ -27,12 +28,13 @@ func run() error {
 	// Note: Make sure the gRPC server is running properly and accessible
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := gw.RegisterCustomerHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, opts)
+	err := gw.RegisterCalculatorServiceHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, opts)
 	if err != nil {
 		return err
 	}
 
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
+	log.Println("Proxy is running...")
 	return http.ListenAndServe(":8081", mux)
 }
 
